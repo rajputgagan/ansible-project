@@ -1,0 +1,65 @@
+---
+- name: React Website Auto Deploy
+  hosts: all
+  become: yes
+
+  vars:
+    app_dir: /var/www/my-website
+    repo_url: https://github.com/rajputgagan/edifice-envoy-tool-d9091fff.git
+
+  tasks:
+
+    - name: Nginx install karo
+      dnf:
+        name: nginx
+        state: present
+
+    - name: Latest code GitHub se pull karo
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_dir }}"
+        version: main
+        force: yes
+
+    - name: Node modules install karo
+      command: npm install
+      args:
+        chdir: "{{ app_dir }}"
+
+    - name: React build banao
+      command: npm run build
+      args:
+        chdir: "{{ app_dir }}"
+
+    - name: Build files Nginx me copy karo
+      shell: cp -r {{ app_dir }}/dist/* /usr/share/nginx/html/
+
+    - name: Nginx config banao
+      copy:
+        dest: /etc/nginx/conf.d/react-app.conf
+        content: |
+          server {
+              listen 8090;
+              root /usr/share/nginx/html;
+              index index.html;
+              location / {
+                  try_files $uri $uri/ /index.html;
+              }
+          }
+
+    - name: Nginx start karo
+      service:
+        name: nginx
+        state: restarted
+        enabled: yes
+
+    - name: Firewall port open karo
+      firewalld:
+        port: 8090/tcp
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: Deploy Complete!
+      debug:
+        msg: "React Website http://192.168.232.131:8090 pe live hai!"
