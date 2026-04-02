@@ -53,13 +53,6 @@
         state: restarted
         enabled: yes
 
-    - name: Firewall port open karo
-      firewalld:
-        port: 8090/tcp
-        permanent: yes
-        state: enabled
-        immediate: yes
-
     - name: Deploy Complete!
       debug:
         msg: "React Website http://192.168.232.131:8090 pe live hai!"
